@@ -9,7 +9,7 @@ from sklearn.svm import SVC
 data = pd.read_excel("data/news.xlsx", usecols=["text", "label"])
 pipeline = Pipeline([("1", CountVectorizer()), ("2", TfidfTransformer()), ("3", SVC())])
 metrics = pd.DataFrame(0, index=range(30), columns=("accuracy", "precision", "recall"))
-splits = ShuffleSplit(n_splits=30, test_size=0.2).split(data["text"])
+splits = ShuffleSplit(n_splits=30, test_size=0.1, random_state=0).split(data)
 for index, (train, test) in enumerate(splits):
     pipeline.fit(data["text"][train], data["label"][train])
     predictions = pipeline.predict(data["text"][test])
@@ -17,4 +17,6 @@ for index, (train, test) in enumerate(splits):
     metrics.at[index, "accuracy"] = (tp + tn) / (tp + fp + fn + tn) * 100
     metrics.at[index, "precision"] = tp / (tp + fp) * 100
     metrics.at[index, "recall"] = tp / (tp + fn) * 100
-print(metrics.mean().combine(metrics.sem(), "{0:.2f} ± {1:.1f}".format).to_string())
+    metrics.at[index, "f1"] = 200 * tp / (2 * tp + fp + fn)
+metrics.to_csv("models/svm/metrics.csv", index=False)
+print(metrics.mean().combine(metrics.sem(), "{0:.1f} ± {1:.1f}".format).to_string())

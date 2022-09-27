@@ -17,15 +17,15 @@ fires = pd.read_excel(
     usecols=["id", "fire"]
 )
 regex = re.compile(r" ?(?:Incêndio|florestal|urbano|automóvel|em|na|/|\d+) ?")
-for i, fire in enumerate(tqdm(fires["fire"])):
+for index, fire in enumerate(tqdm(fires["fire"])):
     geocode = regex.sub("", fire)
     location = requests.get(
         "https://nominatim.openstreetmap.org/search",
-        {"q": geocode, "addressdetails": 1, "format": "json", "limit": 1},
+        {"q": geocode, "format": "json", "limit": 1},
     ).json()
     if not location:
         continue
-    address: dict = location[0]["address"]
-    fires.loc[i, address.keys()] = address.values()
+    fires.at[index, "location"] = location[0]["display_name"]
 merged = news.join(fires.set_index("id"), on="id").drop(columns=["id", "fire"])
+merged = merged[~merged["label"] | merged["location"].notnull()]
 merged.to_excel("data/news.xlsx", index=False)

@@ -17,8 +17,11 @@ for feature, number in zip(country["features"], hits):
     for geometry in shape(feature["geometry"]).geoms:
         match geometry:
             case Polygon():
+                plt.plot(*geometry.exterior.xy, color="black", linewidth=1)
                 plt.fill(*geometry.exterior.xy, color=color)
             case MultiPolygon():
                 for geometry in geometry.geoms:
+                    plt.plot(*geometry.exterior.xy, color="black", linewidth=1)
                     plt.fill(*geometry.exterior.xy, color=color)
+plt.axis('equal')
 plt.show()
